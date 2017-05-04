@@ -18,7 +18,7 @@ import BoundingBox from '../../../Scene/BoundingBox';
 export function ThreeDTilesIndex(tileset) {
     let counter = 0;
     this.index = {};
-    const recurse = function recturse(node) {
+    const recurse = function recurse_f(node) {
         this.index[counter] = node;
         node.tileId = counter;
         counter++;
@@ -97,7 +97,11 @@ ThreeDTiles_Provider.prototype.geojsonToMesh = function geojsonToMesh(geoJson) {
         const features = geoJson.features;
 
         let geometry;
-        const color = /* new THREE.Color(Math.random(),Math.random(),Math.random());//*/new THREE.Color(180 / 255, 147 / 255, 128 / 255);
+        let color = /* new THREE.Color(Math.random(),Math.random(),Math.random());//*/new THREE.Color(180 / 255, 147 / 255, 128 / 255);
+
+        if(features.length === 0) {
+            resolve(new THREE.Object3D());
+        }
 
         if (features[0].properties.zmax !== undefined) {
             let shape = new THREE.Shape();
@@ -111,14 +115,25 @@ ThreeDTiles_Provider.prototype.geojsonToMesh = function geojsonToMesh(geoJson) {
                     bevelSegments: 2,
                 };
                 const coords = features[r].geometry.coordinates;
+                if(coords === undefined) {
+                    resolve(new THREE.Object3D());
+                }
                 for (let i = 0; i < coords.length; i++) {
-                    const polygon = coords[i][0]; // TODO: support holes
-                    const pathPoints = [];
+                    let polygon = coords[i][0]; // TODO: support holes
+                    let pathPoints = [];
                     for (let j = 0; j < polygon.length - 1; j++) {  // skip redundant point
                         pathPoints[j] = (new THREE.Vector2(polygon[j][0], polygon[j][1]));
                     }
                     // shape creation
                     shape = new THREE.Shape(pathPoints);
+                    for (let k = 1; k < coords[i].length; k++) {
+                        polygon = coords[i][k]
+                        pathPoints = [];
+                        for (let j = 0; j < polygon.length - 1; j++) {  // skip redundant point
+                            pathPoints[j] = (new THREE.Vector2(polygon[j][0], polygon[j][1]));
+                        }
+                        shape.holes.push(new THREE.Path(pathPoints));
+                    }
                     if (geometry) {
                         const geometry2 = new THREE.ExtrudeGeometry(shape, extrudeSettings);
                         geometry2.translate(0, 0, features[r].properties.zmin);
