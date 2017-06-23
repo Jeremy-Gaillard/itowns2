@@ -88,6 +88,38 @@ and open the template in the editor.
                 mustSubdivide: itowns.processing.threeDTiles.subdivisionControl,
                 // TODO: add a layer to be able to use Camera.layers feature
             };*/
+            const rules = {
+                default: {
+                    0: ["lod1"],
+                    1: ["lod1"],
+                    2: ["lod1"],
+                },
+                tileConditions: [
+                    [
+                        {
+                            type: "zone",
+                            center: [1844040, 5175290],
+                            radius: 500
+                        },
+                        {
+                            4: ["lod2"]
+                        }
+                    ]
+                ],
+                featureConditions: [
+                    [
+                        {
+                            type: "greater",
+                            attribute: "height",
+                            value: "50"
+                        },
+                        {
+                            2: ["lod2"]
+                        }
+                    ]
+                ]
+            };
+            const rulesString = encodeURI(JSON.stringify(rules));
             const threeDTilesLayer = {
                 protocol: '3d-tiles',
                 id: 'test 3d-tiles',
@@ -95,8 +127,8 @@ and open the template in the editor.
                 processNode: itowns.process3DTilesNode,
                 initLevel0Nodes: itowns.init3DTilesLayer,
                 // nodeType: TileMesh,
-                url: 'http://localhost:9090/getScene?city=lyon&layer=buildings&representations=lod1,lod2&weights=10,20&maxdepth=1',
-                urlPrefix: 'http://localhost:9090/',
+                url: 'http://3d.oslandia.com/proto-building/getScene?city=lyon&layer=buildings&rules=' + rulesString,
+                urlPrefix: 'http://3d.oslandia.com/proto-building/',
                 initRootNodes: itowns.init3DTilesLayer,
                 cullingTest: itowns.threeDTilesCulling,
                 preUpdate: (context, layer) => itowns.pre3DTilesUpdate(context, layer),
@@ -129,7 +161,7 @@ and open the template in the editor.
                 id: '3dtile_bbox',
                 update: debugIdUpdate,
             };
-            scene.addLayer(debugLayer3dtiles, threeDTilesLayer.id);
+            //scene.addLayer(debugLayer3dtiles, threeDTilesLayer.id);
 
             scene.addLayer({
                 url       : "https://download.data.grandlyon.com/wms/grandlyon",

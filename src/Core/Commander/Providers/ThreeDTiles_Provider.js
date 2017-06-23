@@ -22,8 +22,10 @@ export function ThreeDTilesIndex(tileset) {
         this.index[counter] = node;
         node.tileId = counter;
         counter++;
-        for (const child of node.children) {
-            recurse(child);
+        if (node.children) {
+            for (const child of node.children) {
+                recurse(child);
+            }
         }
     }.bind(this);
     recurse(tileset.root);
@@ -92,69 +94,74 @@ function getTransform(transform, parent) {
     }
 }
 
-ThreeDTiles_Provider.prototype.geojsonToMesh = function geojsonToMesh(geoJson) {
+ThreeDTiles_Provider.prototype.geojsonToMesh = function geojsonToMesh(geoJson, url) {
     return new Promise((resolve) => {
-        const features = geoJson.features;
+        try {
+            const features = geoJson.features;
 
-        let geometry;
-        let color = /* new THREE.Color(Math.random(),Math.random(),Math.random());//*/new THREE.Color(180 / 255, 147 / 255, 128 / 255);
+            let geometry;
+            const color = /* new THREE.Color(Math.random(),Math.random(),Math.random());//*/new THREE.Color(180 / 255, 147 / 255, 128 / 255);
 
-        if(features.length === 0) {
-            resolve(new THREE.Object3D());
-        }
+            if (features.length === 0) {
+                resolve(new THREE.Object3D());
+            }
 
-        if (features[0].properties.zmax !== undefined) {
-            let shape = new THREE.Shape();
-            for (let r = 0; r < features.length; r++) {
-                const height = features[r].properties.zmax - features[r].properties.zmin;
-                const extrudeSettings = {
-                    amount: height,
-                    bevelEnabled: true,
-                    bevelThickness: height / 10,
-                    bevelSize: height / 10,
-                    bevelSegments: 2,
-                };
-                const coords = features[r].geometry.coordinates;
-                if(coords === undefined) {
-                    resolve(new THREE.Object3D());
-                }
-                for (let i = 0; i < coords.length; i++) {
-                    let polygon = coords[i][0]; // TODO: support holes
-                    let pathPoints = [];
-                    for (let j = 0; j < polygon.length - 1; j++) {  // skip redundant point
-                        pathPoints[j] = (new THREE.Vector2(polygon[j][0], polygon[j][1]));
+            if (features[0].properties.zmax !== undefined) {
+                let shape = new THREE.Shape();
+                for (let r = 0; r < features.length; r++) {
+                    const height = features[r].properties.zmax - features[r].properties.zmin;
+                    const extrudeSettings = {
+                        amount: height,
+                        bevelEnabled: true,
+                        bevelThickness: height / 10,
+                        bevelSize: height / 10,
+                        bevelSegments: 2,
+                    };
+                    const coords = features[r].geometry.coordinates;
+                    if (coords === undefined) {
+                        resolve(new THREE.Object3D());
                     }
-                    // shape creation
-                    shape = new THREE.Shape(pathPoints);
-                    for (let k = 1; k < coords[i].length; k++) {
-                        polygon = coords[i][k]
-                        pathPoints = [];
+                    for (let i = 0; i < coords.length; i++) {
+                        let polygon = coords[i][0]; // TODO: support holes
+                        let pathPoints = [];
                         for (let j = 0; j < polygon.length - 1; j++) {  // skip redundant point
                             pathPoints[j] = (new THREE.Vector2(polygon[j][0], polygon[j][1]));
                         }
-                        shape.holes.push(new THREE.Path(pathPoints));
-                    }
-                    if (geometry) {
-                        const geometry2 = new THREE.ExtrudeGeometry(shape, extrudeSettings);
-                        geometry2.translate(0, 0, features[r].properties.zmin);
-                        geometry.merge(geometry2);
-                    } else {
-                        geometry = new THREE.ExtrudeGeometry(shape, extrudeSettings);
-                        geometry.translate(0, 0, features[r].properties.zmin);
+                        // shape creation
+                        shape = new THREE.Shape(pathPoints);
+                        for (let k = 1; k < coords[i].length; k++) {
+                            polygon = coords[i][k];
+                            pathPoints = [];
+                            for (let j = 0; j < polygon.length - 1; j++) {  // skip redundant point
+                                pathPoints[j] = (new THREE.Vector2(polygon[j][0], polygon[j][1]));
+                            }
+                            shape.holes.push(new THREE.Path(pathPoints));
+                        }
+                        if (geometry) {
+                            const geometry2 = new THREE.ExtrudeGeometry(shape, extrudeSettings);
+                            geometry2.translate(0, 0, features[r].properties.zmin);
+                            geometry.merge(geometry2);
+                        } else {
+                            geometry = new THREE.ExtrudeGeometry(shape, extrudeSettings);
+                            geometry.translate(0, 0, features[r].properties.zmin);
+                        }
                     }
                 }
+                geometry.computeBoundingSphere();
+            } else {
+                const threeData = geoJsonToThree.convert(geoJson);
+                geometry = threeData.geometries;
+                geometry.computeBoundingSphere();
             }
-            geometry.computeBoundingSphere();
-        } else {
-            const threeData = geoJsonToThree.convert(geoJson);
-            geometry = threeData.geometries;
-            geometry.computeBoundingSphere();
-        }
-        const mesh = new FeatureMesh({ bbox: undefined });
-        mesh.setGeometry(geometry);
-        mesh.material.uniforms.diffuseColor.value = color;
+            const mesh = new FeatureMesh({ bbox: undefined });
+            mesh.setGeometry(geometry);
+            mesh.material.uniforms.diffuseColor.value = color;
 
-        resolve(mesh);
+            resolve(mesh);
+        } catch (error) {
+            // console.log(url);
+            resolve(new THREE.Object3D());
+        }
     });
 };
 
@@ -219,7 +226,7 @@ ThreeDTiles_Provider.prototype.executeCommand = function executeCommand(command)
                         func = supportedFormats.geoJson;
                     }
                 }
-                return func(result).then((tile) => {
+                return func(result, url).then((tile) => {
                     configureTile(tile, layer, metadata);
                     if (parent) {
                         // TODO: move this elsewhere

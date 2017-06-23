@@ -82,7 +82,7 @@ B3dmLoader.prototype.parse = function parse(buffer) {
                     const onload = (gltf) => {
                         resolve(gltf);
                     };
-                    this.glTFLoader.parse(buffer.slice(24), onload);    // TODO: not alway 24 bytes
+                    this.glTFLoader.parse(buffer.slice(28), onload);    // TODO: not alway 24 bytes
                 });
             } else {
                 throw new Error('The embeded binary gltf is invalid.');
