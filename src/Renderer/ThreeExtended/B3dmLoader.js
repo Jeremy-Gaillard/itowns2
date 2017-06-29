@@ -42,7 +42,7 @@ B3dmLoader.prototype.parse = function parse(buffer) {
     // Magic type is unsigned char [4]
     b3dmHeader.magic = textDecoder.decode(new Uint8Array(buffer, 0, 4));
 
-    if (b3dmHeader.magic) {
+    if (b3dmHeader.magic === 'b3dm') {
         // Version, byteLength, batchTableJSONByteLength, batchTableBinaryByteLength and batchTable types are uint32
         b3dmHeader.version = view.getUint32(byteOffset, true);
         byteOffset += Uint32Array.BYTES_PER_ELEMENT;
@@ -85,6 +85,16 @@ B3dmLoader.prototype.parse = function parse(buffer) {
             this.glTFLoader.parse(buffer.slice(28 + b3dmHeader.FTJSONLength +
                 b3dmHeader.FTBinaryLength + b3dmHeader.BTJSONLength +
                 b3dmHeader.BTBinaryLength), onload);
+        });
+    } else if (b3dmHeader.magic === 'glTF') {
+        return new Promise((resolve/* , reject*/) => {
+            const onload = (gltf) => {
+                for (const scene of gltf.scenes) {
+                    scene.traverse(filterUnsupportedSemantics);
+                }
+                resolve(gltf);
+            };
+            this.glTFLoader.parse(buffer, onload);
         });
     } else {
         throw new Error('Invalid b3dm file.');

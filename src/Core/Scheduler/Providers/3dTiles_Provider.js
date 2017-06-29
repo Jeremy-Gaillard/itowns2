@@ -142,7 +142,7 @@ $3dTiles_Provider.prototype.executeCommand = function executeCommand(command) {
                     result = JSON.parse(textDecoder.decode(new Uint8Array(result)));
                     const newPrefix = url.slice(0, url.lastIndexOf('/') + 1);
                     layer.tileIndex.extendTileset(result, metadata.tileId, newPrefix);
-                } else if (magic == 'b3dm') {
+                } else if (magic == 'b3dm' || magic == 'glTF') {
                     func = supportedFormats.b3dm;
                 } else if (magic == 'pnts') {
                     func = supportedFormats.pnts;

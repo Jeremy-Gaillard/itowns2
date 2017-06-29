@@ -30,7 +30,7 @@
         <script src="/dist/debug.js"></script>
         <script type="text/javascript">
             /* global itowns,document,GuiTools*/
-            const positionOnGlobe = { longitude: -75.65044586, latitude: 40.062840764, altitude: 100000 };
+            const positionOnGlobe = { longitude: 2.351323, latitude: 48.856712, altitude: 25000000 };
             // iTowns namespace defined here
             const viewerDiv = document.getElementById('viewerDiv');
 
@@ -97,9 +97,9 @@
                 itowns.$3dTilesSubdivisionControl
             );
             $3dTilesLayerDiscreteLOD.name = 'DiscreteLOD';
-            $3dTilesLayerDiscreteLOD.url = 'http://localhost:8003/tilesets/TilesetWithDiscreteLOD/tileset.json';
+            $3dTilesLayerDiscreteLOD.url = 'http://localhost:8003/tilesets/Test/tileset.json';
             $3dTilesLayerDiscreteLOD.protocol = '3d-tiles'
-            $3dTilesLayerDiscreteLOD.overrideMaterials = true;  // custom cesium shaders are not functional
+            $3dTilesLayerDiscreteLOD.overrideMaterials = false;  // custom cesium shaders are not functional
             $3dTilesLayerDiscreteLOD.type = 'geometry';
             $3dTilesLayerDiscreteLOD.visible = false;
 
