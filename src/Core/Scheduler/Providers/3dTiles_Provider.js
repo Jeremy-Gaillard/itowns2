@@ -150,6 +150,68 @@ $3dTiles_Provider.prototype.b3dmToMesh = function b3dmToMesh(data, layer) {
     });
 };
 
+$3dTiles_Provider.prototype.geojsonToMesh = function geojsonToMesh(data) {
+    return new Promise((resolve) => {
+        try {
+            const features = data.features;
+
+            if (features.length === 0) {
+                resolve({ object3d: new THREE.Object3D() });
+            }
+
+            let geometry;
+            let shape = new THREE.Shape();
+            for (let r = 0; r < features.length; r++) {
+                const height = features[r].properties.zmax - features[r].properties.zmin;
+                const extrudeSettings = {
+                    amount: height,
+                    bevelEnabled: true,
+                    bevelThickness: height / 10,
+                    bevelSize: height / 10,
+                    bevelSegments: 2,
+                };
+                const coords = features[r].geometry.coordinates;
+                if (coords === undefined) {
+                    resolve(new THREE.Object3D());
+                }
+                for (let i = 0; i < coords.length; i++) {
+                    let polygon = coords[i][0]; // TODO: support holes
+                    let pathPoints = [];
+                    for (let j = 0; j < polygon.length - 1; j++) {  // skip redundant point
+                        pathPoints[j] = (new THREE.Vector2(polygon[j][0], polygon[j][1]));
+                    }
+                    // shape creation
+                    shape = new THREE.Shape(pathPoints);
+                    for (let k = 1; k < coords[i].length; k++) {
+                        polygon = coords[i][k];
+                        pathPoints = [];
+                        for (let j = 0; j < polygon.length - 1; j++) {  // skip redundant point
+                            pathPoints[j] = (new THREE.Vector2(polygon[j][0], polygon[j][1]));
+                        }
+                        shape.holes.push(new THREE.Path(pathPoints));
+                    }
+                    if (geometry) {
+                        const geometry2 = new THREE.ExtrudeGeometry(shape, extrudeSettings);
+                        geometry2.translate(0, 0, features[r].properties.zmin);
+                        geometry.merge(geometry2);
+                    } else {
+                        geometry = new THREE.ExtrudeGeometry(shape, extrudeSettings);
+                        geometry.translate(0, 0, features[r].properties.zmin);
+                    }
+                }
+            }
+            geometry.computeBoundingSphere();
+            const mesh = new THREE.Mesh(geometry, new THREE.MeshLambertMaterial(0xffffff));
+
+            resolve({ object3d: mesh });
+        } catch (error) {
+            // console.log(url);
+            console.log(error);
+            resolve({ object3d: new THREE.Object3D() });
+        }
+    });
+};
+
 $3dTiles_Provider.prototype.pntsParse = function pntsParse(data) {
     return new Promise((resolve) => {
         resolve({ object3d: PntsLoader.parse(data).point });
@@ -195,6 +257,7 @@ $3dTiles_Provider.prototype.executeCommand = function executeCommand(command) {
         const supportedFormats = {
             b3dm: this.b3dmToMesh.bind(this),
             pnts: this.pntsParse.bind(this),
+            geojson: this.geojsonToMesh.bind(this),
         };
         return Fetcher.arrayBuffer(url, layer.networkOptions).then((result) => {
             if (result !== undefined) {
@@ -202,8 +265,12 @@ $3dTiles_Provider.prototype.executeCommand = function executeCommand(command) {
                 const magic = textDecoder.decode(new Uint8Array(result, 0, 4));
                 if (magic[0] === '{') {
                     result = JSON.parse(textDecoder.decode(new Uint8Array(result)));
-                    const newPrefix = url.slice(0, url.lastIndexOf('/') + 1);
-                    layer.tileIndex.extendTileset(result, metadata.tileId, newPrefix);
+                    if (result.asset !== undefined) {
+                        const newPrefix = url.slice(0, url.lastIndexOf('/') + 1);
+                        layer.tileIndex.extendTileset(result, metadata.tileId, newPrefix);
+                    } else {
+                        func = supportedFormats.geojson;
+                    }
                 } else if (magic == 'b3dm') {
                     func = supportedFormats.b3dm;
                 } else if (magic == 'pnts') {
