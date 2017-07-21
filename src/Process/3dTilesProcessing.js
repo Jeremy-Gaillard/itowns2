@@ -144,8 +144,8 @@ export function process3dTilesNode(cullingTest, subdivisionTest) {
         if (node.parent.pendingSubdivision && !node.parent.additiveRefinement) {
             node.visible = false;
             // TODO: node.setDisplayed(false)?
-            if (node.material) {
-                node.material.visible = false;
+            if (node.content) {
+                node.content.visible = false;
             }
             return undefined;
         }
@@ -160,19 +160,19 @@ export function process3dTilesNode(cullingTest, subdivisionTest) {
             if (node.pendingSubdivision || subdivisionTest(context, layer, node)) {
                 subdivideNode(context, layer, node);
                 // display iff children aren't ready
-                if (node.material) {
-                    node.material.visible = node.pendingSubdivision || node.additiveRefinement;
+                if (node.content) {
+                    node.content.visible = node.pendingSubdivision || node.additiveRefinement;
                 }
                 returnValue = node.children.filter(n => n.layer == layer.id);
-            } else if (node.material) {
-                node.material.visible = true;
+            } else if (node.content) {
+                node.content.visible = true;
             }
 
             if ((node.material === undefined || node.material.visible)) {
                 for (const n of node.children.filter(n => n.layer == layer.id)) {
                     n.visible = false;
-                    if (n.material) {
-                        n.material.visible = false;
+                    if (n.content) {
+                        n.content.visible = false;
                     }
                 }
             }
@@ -180,8 +180,8 @@ export function process3dTilesNode(cullingTest, subdivisionTest) {
             return returnValue;
         }
 
-        if (node.material) {
-            node.material.visible = false;
+        if (node.content) {
+            node.content.visible = false;
         }
 
         // TODO: cleanup tree
