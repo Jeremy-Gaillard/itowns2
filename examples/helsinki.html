@@ -1,0 +1,94 @@
+<html>
+    <head>
+        <title>Helsinki</title>
+
+        <style type="text/css">
+            html {
+                height: 100%;
+            }
+
+            body {
+                margin: 0;
+                overflow: hidden;
+                height: 100%;
+            }
+
+            #menuDiv {
+                margin : auto auto;
+                width: 100%;
+                padding: 0;
+                height: 100%;
+
+                position: absolute;
+                top:0px;
+                margin-left: 0px;
+            }
+            @media (max-width: 600px) {
+                #menuDiv {
+                    display: none;
+                }
+            }
+
+            #viewerDiv {
+                margin : auto auto;
+                width: 100%;
+                height: 100%;
+                padding: 0;
+            }
+
+            #rules {
+                position: absolute;
+                z-index: 0;
+                top: 0;
+                right: 0;
+                color: white;
+                color: #eee;
+                font: 14px 'Lucida Grande',sans-serif;
+                line-height: normal;
+                text-shadow: 0 -1px 0 #111;
+                padding: 0 1rem;
+                background: #1a1a1a;
+                border: 1px solid #2c2c2c;
+                opacity: 0.8;
+                white-space: pre-wrap;
+            }
+
+            #rules > p {
+                margin: 0.5rem 0;
+            }
+
+            #rules > ul {
+                padding: 0 1rem;
+            }
+
+            @media (max-width: 600px) {
+                #rules {
+                    display: none;
+                }
+            }
+
+        </style>
+        <meta charset="UTF-8">
+
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    </head>
+    <body>
+        <div id="rules">
+            <p><b>Rules</b></p>
+            <button type="button" id="preset1">Preset 1</button>
+            <button type="button" id="preset2">Preset 2</button>
+            <button type="button" id="preset3">Preset 3</button>
+            <p contenteditable="true" id="rulesEdit"></p>
+            <button type="button" id="ruleButton">Load</button>
+        </div>
+        <div id="viewerDiv"></div>
+        <script src="GUI/dat.gui/dat.gui.min.js"></script>
+        <script src="GUI/GuiTools.js"></script>
+        <script src="../dist/itowns.js"></script>
+        <script src="../dist/debug.js"></script>
+        <script type="text/javascript">
+            var renderer; var exports = {};
+        </script>
+        <script src="helsinki.js"></script>
+    </body>
+</html>

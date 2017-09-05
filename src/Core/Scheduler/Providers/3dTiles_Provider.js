@@ -201,7 +201,7 @@ $3dTiles_Provider.prototype.geojsonToMesh = function geojsonToMesh(data) {
                 }
             }
             geometry.computeBoundingSphere();
-            const mesh = new THREE.Mesh(geometry, new THREE.MeshLambertMaterial(0xffffff));
+            const mesh = new THREE.Mesh(geometry, new THREE.MeshLambertMaterial({ color: 0xD79380 }));
 
             resolve({ object3d: mesh });
         } catch (error) {
