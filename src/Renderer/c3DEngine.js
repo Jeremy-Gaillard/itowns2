@@ -28,6 +28,9 @@ function c3DEngine(rendererOrDiv, options = {}) {
 
     this.width = (renderer ? renderer.domElement : viewerDiv).clientWidth;
     this.height = (renderer ? renderer.domElement : viewerDiv).clientHeight;
+    this.left = (renderer ? renderer.domElement : viewerDiv).getBoundingClientRect().left;
+    this.top = (renderer ? renderer.domElement : viewerDiv).getBoundingClientRect().top;
+    this.scale = 1;
 
     this.positionBuffer = null;
     this._nextThreejsLayer = 1;
@@ -134,6 +137,18 @@ function c3DEngine(rendererOrDiv, options = {}) {
  */
 c3DEngine.prototype.getWindowSize = function getWindowSize() {
     return new THREE.Vector2(this.width, this.height);
+};
+
+c3DEngine.prototype.getWindowOffset = function getWindowOffset() {
+    return new THREE.Vector2(this.left, this.top);
+};
+
+c3DEngine.prototype.setScale = function setScale(scale) {
+    this.scale = scale;
+};
+
+c3DEngine.prototype.getScale = function getScale() {
+    return this.scale;
 };
 
 /**

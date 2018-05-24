@@ -367,6 +367,10 @@ View.prototype.notifyChange = function notifyChange(needsRedraw, changeSource) {
     this.mainLoop.scheduleViewUpdate(this, needsRedraw);
 };
 
+View.prototype.notifyScale = function notifyScale(scale) {
+    this.mainLoop.gfxEngine.setScale(scale);
+};
+
 /**
  * Get all layers, with an optionnal filter applied.
  * The filter method will be called with 2 args:

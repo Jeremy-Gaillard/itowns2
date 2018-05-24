@@ -324,8 +324,9 @@ function PlanarControls(view, options = {}) {
      */
     this.initiateRotation = function initiateRotation() {
         this.state = STATE.ROTATE;
+        const scale = this.view.mainLoop.gfxEngine.getScale();
 
-        centerPoint.copy(this.getWorldPointAtScreenXY({ x: 0.5 * this.domElement.clientWidth, y: 0.5 * this.domElement.clientHeight }));
+        centerPoint.copy(this.getWorldPointAtScreenXY({ x: 0.5 * scale * this.domElement.clientWidth + this.domElement.getBoundingClientRect().left, y: 0.5 * scale * this.domElement.clientHeight + this.domElement.getBoundingClientRect().top }));
 
         const r = this.camera.position.distanceTo(centerPoint);
         phi = Math.acos((this.camera.position.z - centerPoint.z) / r);
@@ -617,9 +618,10 @@ function PlanarControls(view, options = {}) {
     this.goToTopView = function goToTopView() {
         const topViewPos = new THREE.Vector3();
         const targetQuat = new THREE.Quaternion();
+        const scale = this.view.mainLoop.gfxEngine.getScale();
 
         // the top view position is above the camera focus point, at an altitude = distanceToPoint
-        topViewPos.copy(this.getWorldPointAtScreenXY({ x: 0.5 * this.domElement.clientWidth, y: 0.5 * this.domElement.clientHeight }));
+        topViewPos.copy(this.getWorldPointAtScreenXY({ x: 0.5 * scale * this.domElement.clientWidth + this.domElement.getBoundingClientRect().left, y: 0.5 * scale * this.domElement.clientHeight + this.domElement.getBoundingClientRect().top }));
         topViewPos.z += Math.min(this.maxAltitude, this.camera.position.distanceTo(topViewPos));
 
         targetQuat.setFromAxisAngle(new THREE.Vector3(1, 0, 0), 0);
@@ -651,7 +653,8 @@ function PlanarControls(view, options = {}) {
     this.getWorldPointFromMathPlaneAtScreenXY = (() => {
         const vector = new THREE.Vector3();
         return (posXY, altitude) => {
-            vector.set((posXY.x / this.domElement.clientWidth) * 2 - 1, -(posXY.y / this.domElement.clientHeight) * 2 + 1, 0.5);
+            const scale = this.view.mainLoop.gfxEngine.getScale();
+            vector.set(((posXY.x - this.domElement.getBoundingClientRect().left) / this.domElement.clientWidth / scale) * 2 - 1, -((posXY.y - this.domElement.getBoundingClientRect().top) / this.domElement.clientHeight / scale) * 2 + 1, 0.5);
             vector.unproject(this.camera);
             // dir = direction toward the point on the plane
             const dir = vector.sub(this.camera.position).normalize();

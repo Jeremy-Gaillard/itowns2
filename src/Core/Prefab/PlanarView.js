@@ -193,11 +193,15 @@ PlanarView.prototype.getPickingPositionFromDepth = function getPickingPositionFr
     const viewPaused = l.scheduler.commandsWaitingExecutionCount() == 0 && l.renderingState == RENDERING_PAUSED;
     const g = l.gfxEngine;
     const dim = g.getWindowSize();
+    const offset = g.getWindowOffset();
+    const scale = g.getScale();
     const camera = this.camera.camera3D;
 
     mouse = mouse || dim.clone().multiplyScalar(0.5);
-    mouse.x = Math.floor(mouse.x);
-    mouse.y = Math.floor(mouse.y);
+    // mouse.x = Math.floor(mouse.x);
+    // mouse.y = Math.floor(mouse.y);
+    const mx = Math.floor((mouse.x - offset.x) + 1) / scale;
+    const my = Math.floor((mouse.y - offset.y) + 1) / scale;
 
     // Prepare state
     const prev = camera.layers.mask;
@@ -205,16 +209,16 @@ PlanarView.prototype.getPickingPositionFromDepth = function getPickingPositionFr
 
      // Render/Read to buffer
     let buffer;
-    if (viewPaused) {
+    if (false && viewPaused) {
         this._fullSizeDepthBuffer = this._fullSizeDepthBuffer || this.readDepthBuffer(0, 0, dim.x, dim.y);
-        const id = ((dim.y - mouse.y - 1) * dim.x + mouse.x) * 4;
+        const id = ((dim.y - my - 1) * dim.x + mx) * 4;
         buffer = this._fullSizeDepthBuffer.slice(id, id + 4);
     } else {
-        buffer = this.readDepthBuffer(mouse.x, mouse.y, 1, 1);
+        buffer = this.readDepthBuffer(mx, my, 1, 1);
     }
 
-    screen.x = (mouse.x / dim.x) * 2 - 1;
-    screen.y = -(mouse.y / dim.y) * 2 + 1;
+    screen.x = (mx / dim.x) * 2 - 1;
+    screen.y = -(my / dim.y) * 2 + 1;
 
     // Origin
     ray.origin.copy(camera.position);
